@@ -1,4 +1,3 @@
-// Include necessary C++ standard libraries for I/O and system calls
 #include <iostream>
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -8,10 +7,9 @@
 #include <cstring>
 #include <cerrno>
 
-// Include the custom header file that defines the shared memory structure
+// header file that defines the shared memory structure
 #include "myShm.h"
 
-// Use the standard C++ namespace for cleaner code
 using namespace std;
 
 int main(int argc, char* argv[]) {
