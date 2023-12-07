@@ -1,3 +1,4 @@
+// master.cpp
 #include <iostream>
 #include <sys/mman.h>
 #include <fcntl.h>
@@ -8,6 +9,7 @@
 
 using namespace std;
 
+
 /*
 * To compile:
 * g++ master.cpp -o master -lrt -lpthread
@@ -16,7 +18,6 @@ using namespace std;
 
 /*
 After running the master program, it will clean up the shared memory and semaphores. However, if you encounter issues, you can manually remove the shared memory and semaphore using the following commands:
-
 ipcrm -M /my_shared_memory  # Remove shared memory
 ipcrm -S /my_named_semaphore  # Remove named semaphore
 */
@@ -39,8 +40,8 @@ int main(int argc, char *argv[]) {
     struct CLASS* shared_data = (struct CLASS*)mmap(0, sizeof(struct CLASS), PROT_WRITE, MAP_SHARED, shm_fd, 0);
 
     // Initialize the shared data structure
+    sem_init(&(shared_data->index_sem), 1, 1); // Initialize the unnamed semaphore with initial value 1
     shared_data->index = 0;
-    sem_init(&(shared_data->unnamed_semaphore), 1, 1); // Initialize unnamed semaphore
 
     // Print initial messages
     cout << "./master " << num_child_processes << " " << shm_name << " " << sem_name << endl;
@@ -48,9 +49,12 @@ int main(int argc, char *argv[]) {
     cout << "Master created a shared memory segment named " << shm_name << " [ " << shm_name << " is from commandline ]" << endl;
     cout << "Master initializes index in the shared structure to zero" << endl;
 
-    // Create and initialize named semaphore for I/O control
-    sem_t* io_semaphore = sem_open(sem_name, O_CREAT, 0666, 1);
-    if (io_semaphore == SEM_FAILED) {
+    // Create and initialize the unnamed semaphore
+    cout << "Master creates an unnamed semaphore for guarding access to the shared index variable" << endl;
+
+    // Create and initialize semaphore
+    sem_t* semaphore = sem_open(sem_name, O_CREAT, 0666, 1);
+    if (semaphore == SEM_FAILED) {
         perror("sem_open");
         return 1;
     }
@@ -93,12 +97,12 @@ int main(int argc, char *argv[]) {
     }
 
     // Clean up and exit
-    sem_close(io_semaphore);
+    sem_close(semaphore);
     sem_unlink(sem_name);
     munmap(shared_data, sizeof(struct CLASS));
     shm_unlink(shm_name);
 
-    cout << "Master removed the semaphore" << endl;
+    cout << "Master released the unnamed semaphore and removed the semaphore" << endl;
     cout << "Master closed access to shared memory, removed shared memory segment, and is exiting" << endl;
 
     return 0;

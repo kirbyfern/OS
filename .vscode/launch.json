@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": false,
-      "cwd": "/home/kirby/CECS/FALL-2024/326/OS/PA2",
-      "program": "/home/kirby/CECS/FALL-2024/326/OS/PA2/build/Debug/outDebug",
+      "cwd": "/home/kirby/CECS/FALL-2024/326/OS/PA5",
+      "program": "/home/kirby/CECS/FALL-2024/326/OS/PA5/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [

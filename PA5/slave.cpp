@@ -1,3 +1,4 @@
+// slave.cpp
 #include <iostream>
 #include <sys/mman.h>
 #include <fcntl.h>
@@ -23,6 +24,9 @@ int main(int argc, char *argv[]) {
     int shm_fd = shm_open(shm_name, O_RDWR, 0666);
     struct CLASS* shared_data = (struct CLASS*)mmap(0, sizeof(struct CLASS), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
 
+    // Open the semaphore
+    sem_t* semaphore = sem_open(sem_name, 0);
+
     // Print initial messages
     cout << "Slave begins execution" << endl;
     cout << "I am child number " << child_number << ", received shared memory name " << shm_name << " and " << sem_name << endl;
@@ -31,16 +35,22 @@ int main(int argc, char *argv[]) {
     cout << "Child number " << child_number << ": What is my lucky number? ";
     cin >> lucky_number;
 
-    // Ensure mutual exclusion with unnamed semaphore
-    sem_wait(&(shared_data->unnamed_semaphore));
+    // Ensure mutual exclusion with semaphore
+    sem_wait(semaphore);
+
+    // Ensure mutual exclusion with the unnamed semaphore for index
+    sem_wait(&(shared_data->index_sem));
 
     // Write data to shared memory
     shared_data->response[shared_data->index] = child_number;
     shared_data->response[shared_data->index + 1] = lucky_number;
     shared_data->index += 2;
 
-    // Release the unnamed semaphore
-    sem_post(&(shared_data->unnamed_semaphore));
+    // Release the unnamed semaphore for index
+    sem_post(&(shared_data->index_sem));
+
+    // Release the semaphore
+    sem_post(semaphore);
 
     // Close access to shared memory
     munmap(shared_data, sizeof(struct CLASS));
